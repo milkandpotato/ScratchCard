@@ -1,25 +1,25 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.810.25
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScratchCard", "ScratchCard.csproj", "{9994C36F-07D4-4002-BB06-10EB6FC0EA8C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScratchCard", "ScratchCard.csproj", "{ED6C2F33-F972-49CB-B8D8-D55A5C6868B2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|anycpu = Debug|anycpu
-		Release|anycpu = Release|anycpu
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9994C36F-07D4-4002-BB06-10EB6FC0EA8C}.Debug|anycpu.ActiveCfg = Debug|anycpu
-		{9994C36F-07D4-4002-BB06-10EB6FC0EA8C}.Debug|anycpu.Build.0 = Debug|anycpu
-		{9994C36F-07D4-4002-BB06-10EB6FC0EA8C}.Release|anycpu.ActiveCfg = Release|anycpu
-		{9994C36F-07D4-4002-BB06-10EB6FC0EA8C}.Release|anycpu.Build.0 = Release|anycpu
+		{ED6C2F33-F972-49CB-B8D8-D55A5C6868B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED6C2F33-F972-49CB-B8D8-D55A5C6868B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED6C2F33-F972-49CB-B8D8-D55A5C6868B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED6C2F33-F972-49CB-B8D8-D55A5C6868B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {EF4F4F81-B698-4E72-8FC3-36B5BBA62B8F}
+		SolutionGuid = {5C7A201F-8A9F-4E1A-940F-21419FE8441F}
 	EndGlobalSection
 EndGlobal
