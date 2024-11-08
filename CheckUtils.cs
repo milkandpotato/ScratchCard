@@ -64,15 +64,27 @@ namespace ScratchCard
             ICellStyle cellStyle = workbook.CreateCellStyle();
             //设置为文本格式，也可以为 text，即 dataFormat.GetFormat("text");
             cellStyle.DataFormat = DateFormat.DEFAULT;
-            cellStyle.BorderBottom = BorderStyle.Thin;    //下边框线
-            cellStyle.BorderLeft = BorderStyle.Thin;      //左边框线
-            cellStyle.BorderRight = BorderStyle.Thin;     //右边框线
-            cellStyle.BorderTop = BorderStyle.Thin;       //上边框线
 
+            //下边框线
+            cellStyle.BorderBottom = BorderStyle.Thin;
+            //左边框线
+            cellStyle.BorderLeft = BorderStyle.Thin;
+            //右边框线
+            cellStyle.BorderRight = BorderStyle.Thin;
+            //上边框线
+            cellStyle.BorderTop = BorderStyle.Thin;       
+
+            //下边框线颜色
             cellStyle.BottomBorderColor = HSSFColor.Black.Index;
+            //左边框线颜色
             cellStyle.LeftBorderColor = HSSFColor.Black.Index;
+            //右边框线颜色
             cellStyle.RightBorderColor = HSSFColor.Black.Index;
+            //上边框线颜色
             cellStyle.TopBorderColor = HSSFColor.Black.Index;
+
+            //文本对齐方式为填充
+            cellStyle.Alignment = HorizontalAlignment.Fill;
 
             return cellStyle;
         }
