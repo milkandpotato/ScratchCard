@@ -7,12 +7,17 @@ using System.Threading.Tasks;
 
 namespace ScratchCard.model
 {
-    public class Award : Card
+    public class Award
     {
         //奖品名称
         private string name;
         //奖品数量
         private int number;
+        //卡片长度
+        private int length;
+        //卡片宽度
+        private int width;
+
         //奖品位置
         private List<AwardPosition> awardPositions = new List<AwardPosition>();
 
@@ -28,6 +33,18 @@ namespace ScratchCard.model
         }
 
         public List<AwardPosition> AwardPositions { get { return awardPositions; } }
+        
+        public int Length
+        {
+            get { return length; }
+            set { length = value; }
+        }
+
+        public int Width
+        {
+            get { return width; }
+            set { width = value; }
+        }
 
         public Award() { }
 

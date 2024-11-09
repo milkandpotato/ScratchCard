@@ -29,6 +29,8 @@ namespace ScratchCard
             for (int i = 0; i < awardType; i++)
             {
                 Award award = new Award();
+                award.Length = card.Length;
+                award.Width = card.Width;
 
                 int awardNumber;
 
@@ -89,8 +91,13 @@ namespace ScratchCard
             IWorkbook wb = new HSSFWorkbook();
             try
             {
-                //设定要使用的Sheet为第0个Sheet
+                //生成sheet页
                 ISheet TempSheet = wb.CreateSheet("ScratchCard");
+                //获取答案文本样式
+                ICellStyle answerStyle = CheckUtils.GetCellStyle(wb);
+                //获取刮刮卡文本样式
+                ICellStyle cardStyle = CheckUtils.GetCardCellStyle(wb);
+
                 //遍历宽度
                 for (int i = 0; i < card.Width; i++)
                 {
@@ -98,9 +105,15 @@ namespace ScratchCard
                     //遍历长度
                     for (int j = 0; j < card.Length; j++)
                     {
-                        //设置边框
-                        ICellStyle cellStyle = CheckUtils.GetCellStyle(wb);
-                        row.CreateCell(j).CellStyle = cellStyle;
+                        //刮刮卡单元格
+                        ICell cardCell = row.CreateCell(j);
+                        //答案单元格
+                        ICell answerCell = row.CreateCell(j + card.Length + 4);
+
+                        //设置刮刮卡文本样式
+                        cardCell.CellStyle = cardStyle;
+                        //设置答案文本样式
+                        answerCell.CellStyle = answerStyle;
                     }
                 }
 
@@ -110,8 +123,10 @@ namespace ScratchCard
                     List<AwardPosition> positions = award.AwardPositions;
                     foreach (AwardPosition position in positions)
                     {
-                        //设置奖品值的位置
+                        //设置刮刮卡的值的位置
                         TempSheet.GetRow(position.PositionY).GetCell(position.PositionX).SetCellValue(award.Name);
+                        //设置答案值的位置
+                        TempSheet.GetRow(position.PositionY).GetCell(position.PositionX + card.Length + 3).SetCellValue(award.Name);
                     }
                 }
 

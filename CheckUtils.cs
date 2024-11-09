@@ -72,7 +72,7 @@ namespace ScratchCard
             //右边框线
             cellStyle.BorderRight = BorderStyle.Thin;
             //上边框线
-            cellStyle.BorderTop = BorderStyle.Thin;       
+            cellStyle.BorderTop = BorderStyle.Thin;
 
             //下边框线颜色
             cellStyle.BottomBorderColor = HSSFColor.Black.Index;
@@ -89,5 +89,20 @@ namespace ScratchCard
             return cellStyle;
         }
 
+        //获取刮刮卡的文本框样式
+        public static ICellStyle GetCardCellStyle(IWorkbook workbook)
+        {
+            ICellStyle cellStyle = GetCellStyle(workbook);
+
+            cellStyle.FillPattern = FillPattern.SolidForeground;
+            //字体颜色
+            IFont font = workbook.CreateFont();
+            font.Color = IndexedColors.Grey50Percent.Index;
+            cellStyle.SetFont(font);
+            //单元格填充颜色
+            cellStyle.FillForegroundColor = IndexedColors.Grey50Percent.Index;
+
+            return cellStyle;
+        }
     }
 }
