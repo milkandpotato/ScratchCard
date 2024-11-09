@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
+using ScratchCard.model;
 
 namespace ScratchCard
 {
@@ -12,6 +13,7 @@ namespace ScratchCard
         public static void Main(string[] args)
         {
             Card card = new Card();
+            Random random = new Random();
             int totalAwardNumber = 0;
 
             //获取长度
@@ -23,42 +25,62 @@ namespace ScratchCard
             //总格子数
             int totalCardCellNumber = card.Length * card.Width;
 
+            #region 生成数据
             for (int i = 0; i < awardType; i++)
             {
-                string awardStr = "";
+                Award award = new Award();
+
+                int awardNumber;
+
                 do
                 {
-                    Console.WriteLine($"请输入奖项_{i}");
+                    Console.WriteLine($"请输入奖项_{i + 1}");
                     //获取奖项内容
-                    awardStr = Console.ReadLine();
+                    string awardStr = Console.ReadLine();
+                    //判断输入是否为空字符串
+                    if (String.IsNullOrEmpty(awardStr))
+                    {
+                        Console.WriteLine("不可输入空字符串");
+                        continue;
+                    }
+
+
                     //判断该奖项是否存在
-                    if (card.Awards.ContainsKey(awardStr))
+                    bool hasAward = card.Awards.Where(award => award.Name.Equals(awardStr)).Any();
+                    if (hasAward)
                     {
                         Console.WriteLine("该奖项已存在，不可重复添加");
+                        continue;
                     }
                     else
                     {
-                        int awardNumber;
-                        do
-                        {
-                            //获取奖项数量
-                            awardNumber = CheckUtils.GetNumber("请输入该奖项的数量");
-
-                            //判断添加的奖品数量是否大于总的格子数量
-
-                            if (totalAwardNumber + awardNumber > totalCardCellNumber)
-                            {
-                                Console.WriteLine($"奖品数量不可超过总格子数！总格子数：{totalCardCellNumber},当前奖品数量:{totalAwardNumber}");
-                            }
-                            else
-                            {
-                                totalAwardNumber += awardNumber;
-                                card.Awards.Add(awardStr, awardNumber);
-                            }
-                        } while (totalAwardNumber + awardNumber > totalCardCellNumber);
+                        award.Name = awardStr;
                     }
-                } while (!card.Awards.ContainsKey(awardStr));
+                }
+                while (String.IsNullOrEmpty(award.Name));
+
+                do
+                {
+                    //获取奖项数量
+                    awardNumber = CheckUtils.GetNumber("请输入该奖项的数量");
+
+                    //判断添加的奖品数量是否大于总的格子数量
+
+                    if (totalAwardNumber + awardNumber > totalCardCellNumber)
+                    {
+                        Console.WriteLine($"奖品数量不可超过总格子数！总格子数：{totalCardCellNumber},当前奖品数量:{totalAwardNumber}");
+                    }
+                    else
+                    {
+                        award.Number = awardNumber;
+                        totalAwardNumber += awardNumber;
+                    }
+                } while (totalAwardNumber + awardNumber > totalCardCellNumber);
+
+                card.Awards.Add(award);
             }
+            #endregion
+
             //获取生成的excel路径
             string filePath = CheckUtils.getFilePath();
             Console.WriteLine($"当前系统生成路径为:{filePath}");
@@ -68,7 +90,7 @@ namespace ScratchCard
             try
             {
                 //设定要使用的Sheet为第0个Sheet
-                ISheet TempSheet = wb.CreateSheet();
+                ISheet TempSheet = wb.CreateSheet("ScratchCard");
                 //遍历宽度
                 for (int i = 0; i < card.Width; i++)
                 {
@@ -83,27 +105,20 @@ namespace ScratchCard
                 }
 
                 //设置数据
-                foreach(string str in card.Awards.Keys)
+                foreach (Award award in card.Awards)
                 {
-                    Random random = new Random();
-                    
-                    //获取奖品数量
-                    int awardNumber;
-                    card.Awards.TryGetValue(str, out awardNumber);
-
-                    for(int i = 0; i < awardNumber; i++)
+                    List<AwardPosition> positions = award.AwardPositions;
+                    foreach (AwardPosition position in positions)
                     {
-                        int awardX = random.Next(card.Length);
-                        int awardY = random.Next(card.Width);
-
                         //设置奖品值的位置
-                        TempSheet.GetRow(awardY).GetCell(awardX).SetCellValue(str);
+                        TempSheet.GetRow(position.PositionY).GetCell(position.PositionX).SetCellValue(award.Name);
                     }
                 }
 
                 using (FileStream fs = new FileStream(filePath, FileMode.OpenOrCreate))
                 {
-                    wb.Write(fs);//向打开的这个xls文件中写入数据
+                    //向打开的这个xls文件中写入数据
+                    wb.Write(fs);
                     fs.Close();
                     fs.Dispose();
                 }
