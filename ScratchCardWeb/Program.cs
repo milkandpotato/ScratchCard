@@ -2,6 +2,9 @@ using ScratchCardWeb.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//使用antDesign组件
+builder.Services.AddAntDesign();
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
