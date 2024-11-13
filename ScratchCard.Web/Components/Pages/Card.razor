@@ -1,45 +1,28 @@
 ﻿@page "/card"
+@rendermode InteractiveServer
 
 <PageTitle>ScratchCard</PageTitle>
 
-<div>
-    <Steps Current="0" Class="site-navigation-steps">
+<Flex Vertical>
+    <Steps Current="@step" Class="site-navigation-steps">
         <Step Title="设置卡片长度和宽度" />
         <Step Title="设置奖品种类和数量" />
         <Step Title="完成" />
     </Steps>
-    
-</div>
-<div>
-    <Button Type="@ButtonType.Primary"
+    <div>
+        <Button Type="@ButtonType.Primary"
             AutoLoading
-            OnClick="EnterNoIconLoading">
-        Click me!
-    </Button>
-</div>
+            OnClick="NextStep">
+        NextStep
+        </Button>
+    </div>
+</Flex>
 
 @code {
-    private async Task Log()
-    {
-        await Task.Delay(500);
-    }
+    //当前步骤
+    private int step = 0;
 
-    private bool _onlyIconLoading;
-
-    private async Task EnterNoIconLoading()
-    {
-        await Task.Delay(8000);
-    }
-
-    private async Task EnterWithIconLoading()
-    {
-        await Task.Delay(8000);
-    }
-
-    private async Task EnterOnlyIconLoading()
-    {
-        _onlyIconLoading = true;
-        await Task.Delay(8000);
-        _onlyIconLoading = false;
+    private void NextStep(){
+        step++;
     }
 }

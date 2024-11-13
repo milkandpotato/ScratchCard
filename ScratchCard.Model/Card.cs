@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ScratchCard.model
+namespace ScratchCard.Model
 {
     public class Card
     {

@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
-using ScratchCard.model;
+using ScratchCard.Model;
 
 namespace ScratchCard
 {
