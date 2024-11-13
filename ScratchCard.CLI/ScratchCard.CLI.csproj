@@ -11,4 +11,8 @@
     <PackageReference Include="NPOI" Version="2.7.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ScratchCard.Model\ScratchCard.Model.csproj" />
+  </ItemGroup>
+
 </Project>

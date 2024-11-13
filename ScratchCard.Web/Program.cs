@@ -1,8 +1,8 @@
-using ScratchCardWeb.Components;
+using ScratchCard.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//使用antDesign组件
+//浣跨敤antDesign
 builder.Services.AddAntDesign();
 
 // Add services to the container.
