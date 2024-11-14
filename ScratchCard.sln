@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScratchCard.Web", "ScratchC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScratchCard.Model", "ScratchCard.Model\ScratchCard.Model.csproj", "{4D2A9558-4473-44FB-B1F7-8DC45D54F64D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScratchCard.File", "ScratchCard.File\ScratchCard.File.csproj", "{A8B02968-CE11-4D66-B88E-FEE5DABFC2B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{4D2A9558-4473-44FB-B1F7-8DC45D54F64D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D2A9558-4473-44FB-B1F7-8DC45D54F64D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D2A9558-4473-44FB-B1F7-8DC45D54F64D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8B02968-CE11-4D66-B88E-FEE5DABFC2B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8B02968-CE11-4D66-B88E-FEE5DABFC2B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8B02968-CE11-4D66-B88E-FEE5DABFC2B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8B02968-CE11-4D66-B88E-FEE5DABFC2B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
