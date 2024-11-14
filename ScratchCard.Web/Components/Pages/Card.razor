@@ -1,28 +1,118 @@
-﻿@page "/card"
+﻿@using System.ComponentModel.DataAnnotations;
+
+@page "/card"
 @rendermode InteractiveServer
 
 <PageTitle>ScratchCard</PageTitle>
 
-<Flex Vertical>
-    <Steps Current="@step" Class="site-navigation-steps">
-        <Step Title="设置卡片长度和宽度" />
-        <Step Title="设置奖品种类和数量" />
-        <Step Title="完成" />
-    </Steps>
-    <div>
-        <Button Type="@ButtonType.Primary"
-            AutoLoading
-            OnClick="NextStep">
-        NextStep
-        </Button>
+<div>
+    <Flex Vertical Gap="middle">
+        <Steps Current="@step" Class="site-navigation-steps">
+            <Step Title="设置卡片" />
+            <Step Title="设置奖品数量" />
+            <Step Title="完成" />
+        </Steps>
+        <Form Model="@card">
+            @if (step == 0)
+            {
+                <Flex Gap="middle" Align="center" Justify="center" Vertical>
+                    <FormItem Label="刮刮卡的长度">
+                        <AntDesign.InputNumber Value="@card.Length" DefaultValue="1" Min="1" ValueChanged="(int number)=>CardLength_OnChange(number)" />
+                    </FormItem>
+                    <FormItem Label="刮刮卡的宽度">
+                        <AntDesign.InputNumber Value="@card.Width" DefaultValue="1" Min="1" ValueChanged="(int number)=>CardWidth_OnChange(number)" />
+                    </FormItem>
+                    <FormItem Label="奖品种类数目">
+                        <AntDesign.InputNumber Value="@awardTypeNumber" DefaultValue="1" Min="1" ValueChanged="(int number )=>AwardTypeNumberOnChange(number)" />
+                    </FormItem>
+                </Flex>
+            }
+            else if (step == 1)
+            {
+                <FormItem>
+                    <Table DataSource="@card.Awards" TItem="Model.Award" Context="row" HidePagination Bordered>
+                        <PropertyColumn Property="c=>c.Name" Width="50%">
+                            <FormItem Required>
+                                <Input Value="@row.Name" />
+                            </FormItem>
+                        </PropertyColumn>
+
+                        <PropertyColumn Property="c=>c.Number" Width="50%">
+                            <FormItem Required>
+                                <AntDesign.InputNumber Value="@row.Number" />
+                            </FormItem>
+                        </PropertyColumn>
+                    </Table>
+                </FormItem>
+            }
+        </Form>
+        <Flex Align="center" Justify="center">
+            <Space Align="@SpaceAlign.Center" Size="@SpaceSize.Large">
+                <SpaceItem>
+                    <Button Type="@ButtonType.Default"
+                            OnClick="PrevStep">
+                        PrevStep
+                    </Button>
+                </SpaceItem>
+                <SpaceItem>
+                    <Button Type="@ButtonType.Primary"
+                            OnClick="NextStep">
+                        NextStep
+                    </Button>
+                </SpaceItem>
+            </Space>
+        </Flex>
+    </Flex>
+    <div style="height:30%">
     </div>
-</Flex>
+</div>
 
 @code {
     //当前步骤
     private int step = 0;
 
-    private void NextStep(){
+    private int awardTypeNumber = 1;
+
+    private Model.Card card = new Model.Card();
+
+    //下一步
+    private void NextStep()
+    {
         step++;
+    }
+
+    //上一步
+    private void PrevStep()
+    {
+        step = step - 1 < 0 ? 0 : step - 1;
+    }
+
+    //设置卡片的长度
+    private void CardLength_OnChange(int number)
+    {
+        card.Length = number;
+    }
+
+    //设置卡片的宽度
+    private void CardWidth_OnChange(int number)
+    {
+        card.Width = number;
+    }
+
+    //设置奖品种类
+    private void AwardTypeNumberOnChange(int number)
+    {
+        card.Awards.Clear();
+
+        for (int i = 0; i < number; i++)
+        {
+            Model.Award award = new Award();
+            award.Length = card.Length;
+            award.Width = card.Width;
+
+            card.Awards.Add(award);
+        }
+
+        awardTypeNumber = number;
     }
 }

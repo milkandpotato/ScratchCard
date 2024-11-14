@@ -5,9 +5,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ScratchCard.Model\ScratchCard.Model.csproj" />
+    <PackageReference Include="AntDesign" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AntDesign" Version="1.0.0" />
+    <ProjectReference Include="..\ScratchCard.Model\ScratchCard.Model.csproj" />
   </ItemGroup>
 </Project>

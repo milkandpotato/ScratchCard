@@ -28,6 +28,7 @@ namespace ScratchCard.Model
         public List<Award> Awards
         {
             get { return awards; }
+            set { awards = value; }
         }
 
         public Card()
