@@ -1,6 +1,5 @@
+using Minio;
 using ScratchCard.Web.Components;
-using Swashbuckle.AspNetCore.Swagger;
-using Swashbuckle.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,11 +11,21 @@ services.AddControllers();
 services.AddSwaggerGen();
 services.AddEndpointsApiExplorer();
 //使用antDesign
-builder.Services.AddAntDesign();
+services.AddAntDesign();
+
+//使用minio
+services.AddMinio(minio =>
+{
+    ScratchCard.File.MinioConfig minioConfig = new(config);
+
+    minio.WithEndpoint(minioConfig.Endpoint);
+    minio.WithCredentials(minioConfig.AccessKey, minioConfig.SecretKey);
+    minio.WithSSL(minioConfig.Secure);
+});
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+services.AddRazorComponents()
+.AddInteractiveServerComponents();
 
 var app = builder.Build();
 

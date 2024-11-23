@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
+using ScratchCard.File;
 using ScratchCard.Model;
 
 namespace ScratchCard
@@ -14,6 +15,7 @@ namespace ScratchCard
         {
             Card card = new Card();
             Random random = new Random();
+            MinioUtil minioUtil = new MinioUtil();
             int totalAwardNumber = 0;
 
             //获取长度
@@ -137,6 +139,9 @@ namespace ScratchCard
                     fs.Close();
                     fs.Dispose();
                 }
+
+                //上传minio
+                minioUtil.UploadFile(Guid.NewGuid().ToString(),filePath);
             }
             catch (Exception e)
             {

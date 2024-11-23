@@ -78,21 +78,20 @@
         else
         {
             <Result Status="success"
-                    Title="成功生成刮刮卡！">
+            Title="成功生成刮刮卡！">
                 <Extra>
-                    <Button Type="primary">点击下载Excel文件</Button>
+                    <Button Type="primary" Icon="cloud-download" OnClick="UploadFile">点击下载Excel文件</Button>
                 </Extra>
             </Result>
         }
     </Flex>
-    <div style="height:30%">
-    </div>
 </div>
 
 @code {
     //当前步骤
     private int step = 0;
 
+    //奖品种类数目
     private int awardTypeNumber = 0;
 
     private Model.Card card = new Model.Card();
@@ -101,7 +100,8 @@
     private void NextStep()
     {
         step++;
-        if(step == 2){
+        if (step == 2)
+        {
             //触发生成excel的逻辑
             ByteArrayOutputStream wb = FileUtil.GenerateExcelFile(card);
         }
@@ -128,5 +128,12 @@
         }
 
         awardTypeNumber = number;
+    }
+
+    private async Task UploadFile(){
+        string filePath = FileUtil.GetFilePath();
+
+        // MinioUtil minioUtil = new MinioUtil();
+        // await minioUtil.UploadFile(Guid.NewGuid().ToString(), filePath);
     }
 }
