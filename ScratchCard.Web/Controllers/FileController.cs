@@ -19,14 +19,13 @@ namespace ScratchCard.Web.Controllers
         /// 上传文件到Minio
         /// </summary>
         /// <param name="bucketName">bucket</param>
-        /// <param name="filePath">文件路径</param>
+        /// <param name="formFile">文件</param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpPost]
         [Route("uploadFile")]
-        public async Task UploadFile(string bucketName, string filePath)
+        public async Task UploadFile(string bucketName, IFormFile formFile)
         {
-            FileInfo fileInfo = new FileInfo(filePath);
-            await _minioUtil.UploadFileAsync(bucketName, fileInfo);
+            await _minioUtil.UploadFileAsync(bucketName, formFile.FileName, formFile.Length, formFile.OpenReadStream());
         }
 
         /// <summary>
@@ -37,7 +36,7 @@ namespace ScratchCard.Web.Controllers
         /// <returns></returns>
         [HttpDelete]
         [Route("deleteFile")]
-        public async Task DeleteFile(string bucketName,string fileName)
+        public async Task DeleteFile(string bucketName, string fileName)
         {
             await _minioUtil.DeleteFileAsync(bucketName, fileName);
         }

@@ -1,4 +1,5 @@
 using Minio;
+using NPOI.POIFS.Crypt;
 using ScratchCard.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,13 +16,11 @@ services.AddAntDesign();
 
 //使用minio
 services.AddMinio(minio =>
-{
-    ScratchCard.File.MinioConfig minioConfig = new(config);
-
-    minio.WithEndpoint(minioConfig.Endpoint);
-    minio.WithCredentials(minioConfig.AccessKey, minioConfig.SecretKey);
-    minio.WithSSL(minioConfig.Secure);
-});
+    minio.WithEndpoint(config["MinioSettings:serverAddress"], int.Parse(config["MinioSettings:port"]))
+    .WithCredentials(config["MinioSettings:AccessKey"], config["MinioSettings:SecretKey"])
+    .WithSSL(bool.Parse(config["MinioSettings:Secure"]))
+    .Build()
+);
 
 // Add services to the container.
 services.AddRazorComponents()

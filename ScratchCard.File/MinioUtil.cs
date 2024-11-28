@@ -1,4 +1,4 @@
-﻿using MimeKit;
+﻿using Microsoft.Extensions.Configuration;
 using Minio;
 using Minio.DataModel.Args;
 
@@ -13,34 +13,52 @@ namespace ScratchCard.File
             _minioClient = minioClient;
         }
 
-        //文件下载路径
-        private static readonly string downloadFilePath = "path/to/your/downloaded/file";
-
         /// <summary>
         /// 上传文件
         /// </summary>
         /// <param name="objectName">文件唯一标识</param>
         /// <param name="filePath">文件路径</param>
         /// <returns></returns>
-        public async Task UploadFileAsync(string bucketName, FileInfo fileInfo)
+        public async Task UploadFileAsync(string bucketName, string fileName, string filePath)
         {
-            CheckBucket(bucketName);
+            await CheckBucket(bucketName);
 
             await _minioClient.PutObjectAsync(new PutObjectArgs()
                                               .WithBucket(bucketName)
-                                              .WithObject(fileInfo.Name)
-                                              .WithFileName(fileInfo.FullName)
-                                              );
+                                              .WithObject(fileName)
+                                              .WithFileName(filePath));
 
-            Console.WriteLine($"文件 '{fileInfo.Name}' 上传到 bucket '{bucketName}' 中。");
+            Console.WriteLine($"文件 '{fileName}' 上传到 bucket '{bucketName}' 中。");
+        }
+
+        /// <summary>
+        /// 上传文件
+        /// </summary>
+        /// <param name="bucketName"></param>
+        /// <param name="fileName"></param>
+        /// <param name="fileStream"></param>
+        /// <returns></returns>
+        public async Task UploadFileAsync(string bucketName, string fileName, long fileSize, Stream fileStream)
+        {
+            await CheckBucket(bucketName);
+
+            await _minioClient.PutObjectAsync(new PutObjectArgs()
+                                              .WithBucket(bucketName)
+                                              .WithObject(fileName)
+                                              .WithObjectSize(fileSize)
+                                              .WithStreamData(fileStream));
+
+            Console.WriteLine($"文件 '{fileName}' 上传到 bucket '{bucketName}' 中。");
         }
 
         /// <summary>
         /// 下载文件
         /// </summary>
+        /// <param name="bucketName">bucket名称</param>
         /// <param name="objectName">文件唯一标识</param>
+        /// <param name="downloadFilePath">文件下载路径</param>
         /// <returns></returns>
-        public async Task DownloadFile(string bucketName, string objectName)
+        public async Task DownloadFile(string bucketName, string objectName, string downloadFilePath)
         {
             await _minioClient.GetObjectAsync(new GetObjectArgs()
                                               .WithBucket(bucketName)
@@ -52,6 +70,7 @@ namespace ScratchCard.File
         /// <summary>
         /// 删除文件
         /// </summary>
+        /// <param name="bucketName">bucket名称</param>
         /// <param name="objectName">文件唯一标识</param>
         /// <returns></returns>
         public async Task DeleteFileAsync(string bucketName, string objectName)
@@ -74,12 +93,14 @@ namespace ScratchCard.File
         /// <param name="minio"></param>
         /// <param name="bucketName"></param>
         /// <exception cref="Exception"></exception>
-        private void CheckBucket(string bucketName)
+        private async Task CheckBucket(string bucketName)
         {
-            bool found = BucketExists(bucketName);
+            bool found = await BucketExists(bucketName);
+            //如果不存在则创建bucket
             if (!found)
             {
-                throw new Exception(string.Format("存储桶[{0}]不存在", bucketName));
+                await _minioClient.MakeBucketAsync(new MakeBucketArgs()
+                    .WithBucket(bucketName));
             }
         }
 
@@ -93,16 +114,19 @@ namespace ScratchCard.File
         /// </example>
         /// <param name="bucketName">存储桶名称</param>
         /// <returns></returns>
-        public bool BucketExists(string bucketName, CancellationToken cancellationToken = default(CancellationToken))
+        private async Task<bool> BucketExists(string bucketName, CancellationToken cancellationToken = default(CancellationToken))
         {
             try
             {
                 BucketExistsArgs args = new BucketExistsArgs()
                                                 .WithBucket(bucketName);
 
-                Task<bool> bucketExistTask = _minioClient.BucketExistsAsync(args);
-                Task.WaitAll(bucketExistTask);
-                return bucketExistTask.Result;
+                bool bucketExistTask = await _minioClient.BucketExistsAsync(args);
+                return bucketExistTask;
+            }
+            catch (Minio.Exceptions.AccessDeniedException ex)
+            {
+                throw new Exception(ex.Message);
             }
             catch (Exception e)
             {
