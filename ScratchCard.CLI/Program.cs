@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
-using NPOI.HSSF.UserModel;
-using NPOI.SS.UserModel;
+﻿using Minio;
 using ScratchCard.File;
 using ScratchCard.Model;
 
@@ -13,9 +8,19 @@ namespace ScratchCard
     {
         public static void Main(string[] args)
         {
+            //初始化minio
+            IMinioClient client = new MinioClient()
+                .WithEndpoint("47.99.75.217:9000")
+                .WithCredentials("HDkFf2iLw5vO69M0rat7", "VA4d2m6sm4qqlQFRL9R3vhTg3nZtS2NfwLxSHD0C")
+                .WithSSL(false)
+                .Build();
+
+            //初始化卡片
             Card card = new Card();
+            //初始化随机数
             Random random = new Random();
-            MinioUtil minioUtil = new MinioUtil();
+
+            MinioUtil minioUtil = new MinioUtil(client);
             int totalAwardNumber = 0;
 
             //获取长度
@@ -89,64 +94,12 @@ namespace ScratchCard
             string filePath = CheckUtils.getFilePath();
             Console.WriteLine($"当前系统生成路径为:{filePath}");
 
-            //创建一个新的excel文件，如果当前路径已经存在，则进行覆盖操作
-            IWorkbook wb = new HSSFWorkbook();
-            try
-            {
-                //生成sheet页
-                ISheet TempSheet = wb.CreateSheet("ScratchCard");
-                //获取答案文本样式
-                ICellStyle answerStyle = CheckUtils.GetCellStyle(wb);
-                //获取刮刮卡文本样式
-                ICellStyle cardStyle = CheckUtils.GetCardCellStyle(wb);
+            //生成xls文件
+            FileUtil.GenerateExcelFile(card);
 
-                //遍历宽度
-                for (int i = 0; i < card.Width; i++)
-                {
-                    IRow row = TempSheet.CreateRow(i);
-                    //遍历长度
-                    for (int j = 0; j < card.Length; j++)
-                    {
-                        //刮刮卡单元格
-                        ICell cardCell = row.CreateCell(j);
-                        //答案单元格
-                        ICell answerCell = row.CreateCell(j + card.Length + 4);
-
-                        //设置刮刮卡文本样式
-                        cardCell.CellStyle = cardStyle;
-                        //设置答案文本样式
-                        answerCell.CellStyle = answerStyle;
-                    }
-                }
-
-                //设置数据
-                foreach (Award award in card.Awards)
-                {
-                    List<AwardPosition> positions = award.AwardPositions;
-                    foreach (AwardPosition position in positions)
-                    {
-                        //设置刮刮卡的值的位置
-                        TempSheet.GetRow(position.PositionY).GetCell(position.PositionX).SetCellValue(award.Name);
-                        //设置答案值的位置
-                        TempSheet.GetRow(position.PositionY).GetCell(position.PositionX + card.Length + 3).SetCellValue(award.Name);
-                    }
-                }
-
-                using (FileStream fs = new FileStream(filePath, FileMode.OpenOrCreate))
-                {
-                    //向打开的这个xls文件中写入数据
-                    wb.Write(fs);
-                    fs.Close();
-                    fs.Dispose();
-                }
-
-                //上传minio
-                minioUtil.UploadFile(Guid.NewGuid().ToString(),filePath);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
+            //上传minio
+            Task task = minioUtil.UploadFileAsync(Environment.UserName, filePath, filePath);
+            task.Wait();
         }
     }
 }

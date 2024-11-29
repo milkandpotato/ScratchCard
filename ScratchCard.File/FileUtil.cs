@@ -33,6 +33,33 @@ namespace ScratchCard.File
             return filePath;
         }
 
+        /// <summary>
+        /// 获取刮刮卡文件
+        /// </summary>
+        /// <returns></returns>
+        public static FileInfo GetFile()
+        {
+            string filePath = "";
+            string fileName = "ScratchCard.xls";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                filePath = $"C:\\Users\\{Environment.UserName}\\Downloads\\{fileName}";
+                Console.WriteLine("Windows");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Console.WriteLine("Linux");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                filePath = $"/Users/{Environment.UserName}/Downloads/{fileName}";
+            }
+
+            FileInfo fileInfo = new FileInfo(filePath);
+
+            return fileInfo;
+        }
+
         //获取excel文本框
         public static ICellStyle GetCellStyle(IWorkbook workbook)
         {
@@ -85,6 +112,8 @@ namespace ScratchCard.File
         public static ByteArrayOutputStream GenerateExcelFile(Card card)
         {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+            string filePath = GetFilePath();
             //创建一个新的excel文件，如果当前路径已经存在，则进行覆盖操作
             IWorkbook wb = new HSSFWorkbook();
             try
@@ -121,11 +150,22 @@ namespace ScratchCard.File
                     List<AwardPosition> positions = award.AwardPositions;
                     foreach (AwardPosition position in positions)
                     {
+                        //答案值的位置
+                        int answerPositionX = position.PositionX + card.Length + 4;
+
                         //设置刮刮卡的值的位置
                         TempSheet.GetRow(position.PositionY).GetCell(position.PositionX).SetCellValue(award.Name);
                         //设置答案值的位置
-                        TempSheet.GetRow(position.PositionY).GetCell(position.PositionX + card.Length + 3).SetCellValue(award.Name);
+                        TempSheet.GetRow(position.PositionY).GetCell(answerPositionX).SetCellValue(award.Name);
                     }
+                }
+
+                using (FileStream fs = new FileStream(filePath, FileMode.OpenOrCreate))
+                {
+                    //向打开的这个xls文件中写入数据
+                    wb.Write(fs);
+                    fs.Close();
+                    fs.Dispose();
                 }
 
                 wb.Write(outputStream);
@@ -136,8 +176,7 @@ namespace ScratchCard.File
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
-                return null;
+                throw new Exception(e.Message);
             }
         }
     }

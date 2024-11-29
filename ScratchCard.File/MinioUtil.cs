@@ -15,7 +15,7 @@ namespace ScratchCard.File
         /// <summary>
         /// 上传文件
         /// </summary>
-        /// <param name="objectName">文件唯一标识</param>
+        /// <param name="fileName">文件唯一标识</param>
         /// <param name="filePath">文件路径</param>
         /// <returns></returns>
         public async Task UploadFileAsync(string bucketName, string fileName, string filePath)
