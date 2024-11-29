@@ -8,7 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NPOI" Version="2.7.1" />
+    <ProjectReference Include="..\ScratchCard.File\ScratchCard.File.csproj" />
+    <ProjectReference Include="..\ScratchCard.Model\ScratchCard.Model.csproj" />
   </ItemGroup>
 
 </Project>
