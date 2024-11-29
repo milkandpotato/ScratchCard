@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Minio;
+﻿using Minio;
 using Minio.DataModel.Args;
 
 namespace ScratchCard.File
@@ -23,9 +22,11 @@ namespace ScratchCard.File
         {
             await CheckBucket(bucketName);
 
+            string objectName = GenerateFileName(fileName);
+
             await _minioClient.PutObjectAsync(new PutObjectArgs()
                                               .WithBucket(bucketName)
-                                              .WithObject(fileName)
+                                              .WithObject(objectName)
                                               .WithFileName(filePath));
 
             Console.WriteLine($"文件 '{fileName}' 上传到 bucket '{bucketName}' 中。");
@@ -34,17 +35,20 @@ namespace ScratchCard.File
         /// <summary>
         /// 上传文件
         /// </summary>
-        /// <param name="bucketName"></param>
-        /// <param name="fileName"></param>
-        /// <param name="fileStream"></param>
+        /// <param name="bucketName">bucket名称</param>
+        /// <param name="fileName">文件名称</param>
+        /// <param name="fileSize">文件大小</param>
+        /// <param name="fileStream">文件流</param>
         /// <returns></returns>
         public async Task UploadFileAsync(string bucketName, string fileName, long fileSize, Stream fileStream)
         {
             await CheckBucket(bucketName);
 
+            string objectName = GenerateFileName(fileName);
+
             await _minioClient.PutObjectAsync(new PutObjectArgs()
                                               .WithBucket(bucketName)
-                                              .WithObject(fileName)
+                                              .WithObject(objectName)
                                               .WithObjectSize(fileSize)
                                               .WithStreamData(fileStream));
 
@@ -132,6 +136,22 @@ namespace ScratchCard.File
             {
                 throw new Exception(e.Message);
             }
+        }
+
+        /// <summary>
+        /// 生成唯一文件名
+        /// </summary>
+        /// <param name="fileFullName">文件名称("xxxxx.pdf")</param>
+        /// <returns></returns>
+        private string GenerateFileName(string fileFullName)
+        {
+            //文件名
+            string filename = Path.GetFileNameWithoutExtension(fileFullName);
+
+            //扩展名
+            string extension = Path.GetExtension(fileFullName);
+
+            return $"{filename}_{DateTime.Now.Ticks}{extension}";
         }
     }
 }
