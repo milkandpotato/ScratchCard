@@ -87,7 +87,7 @@ namespace ScratchCard
 
                     if (totalAwardNumber + awardNumber > totalCardCellNumber)
                     {
-                        Console.WriteLine($"奖品数量不可超过总格子数！总格子数：{totalCardCellNumber},当前奖品数量:{totalAwardNumber}");
+                        Console.WriteLine($"奖品数量不可超过总格子数！总格子数：{totalCardCellNumber},期望奖品数量:{totalAwardNumber + awardNumber}");
                     }
                     else
                     {
