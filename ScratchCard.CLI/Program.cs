@@ -27,8 +27,6 @@ namespace ScratchCard
             card.Length = CheckUtils.GetNumber("请输入您的刮刮卡的长度");
             //获取宽度
             card.Width = CheckUtils.GetNumber("请输入您的刮刮卡的宽度");
-            //获取奖项类型数量
-            int awardType = CheckUtils.GetNumber("请输入您奖项类型的数量");
             //总格子数
             int totalCardCellNumber = card.Length * card.Width;
             do
