@@ -31,9 +31,19 @@ namespace ScratchCard
             int awardType = CheckUtils.GetNumber("请输入您奖项类型的数量");
             //总格子数
             int totalCardCellNumber = card.Length * card.Width;
+            do
+            {
+                //获取奖项类型数量
+                card.AwardTypes = CheckUtils.GetNumber("请输入您奖项类型的数量");
+                if (card.AwardTypes > totalCardCellNumber)
+                {
+                    Console.WriteLine($"奖项数量不可大于总格子数!总格子数为:{totalCardCellNumber}");
+                }
+            } while (card.AwardTypes > totalCardCellNumber);
+
 
             #region 生成数据
-            for (int i = 0; i < awardType; i++)
+            for (int i = 0; i < card.AwardTypes; i++)
             {
                 Award award = new Award();
                 award.Length = card.Length;
