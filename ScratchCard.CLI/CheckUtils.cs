@@ -30,12 +30,21 @@ namespace ScratchCard
                 {
                     Console.WriteLine("请输入纯数字");
                 }
+
+                //校验输入的内容是否为正整数
+                if (number < 0)
+                {
+                    Console.WriteLine("请输入正整数!");
+                }
             } while (!checkResult);
 
             return number;
         }
 
-        //获取文件路径
+        /// <summary>
+        /// 获取文件路径
+        /// </summary>
+        /// <returns></returns>
         public static string getFilePath()
         {
             string filePath = "";
