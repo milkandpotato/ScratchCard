@@ -9,6 +9,8 @@ namespace ScratchCard.Model
         private int length;
         //宽度
         private int width;
+        //奖项数量
+        private int awardTypes;
         //奖项
         private List<Award> awards = new List<Award>();
 
@@ -23,6 +25,12 @@ namespace ScratchCard.Model
         {
             get { return width; }
             set { width = value; }
+        }
+
+        public int AwardTypes
+        {
+            get { return awardTypes; }
+            set { awardTypes = value; }
         }
 
         public List<Award> Awards
