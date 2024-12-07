@@ -1,6 +1,8 @@
 ﻿@using System.ComponentModel.DataAnnotations;
 @using ScratchCard.File;
 @using NPOI.Util;
+@using AntDesign;
+@using Minio;
 
 @page "/card"
 @rendermode InteractiveServer
@@ -38,7 +40,7 @@
                 case 1:
                     {
                         <FormItem>
-                            <Table DataSource="@card.Awards" TItem="Model.Award" Context="row" HidePagination Bordered AutoHeight>
+                            <Table DataSource="@card.Awards" TItem="Model.Award" Context="row" HidePagination Bordered>
                                 <PropertyColumn Property="c=>c.Name" Width="50%">
                                     <FormItem Required>
                                         <Input Value="@row.Name" ValueChanged="(string name)=>{row.Name = name;}" />
@@ -62,13 +64,13 @@
                 <Space Align="@SpaceAlign.Center" Size="@SpaceSize.Large">
                     <SpaceItem>
                         <Button Type="@ButtonType.Default"
-                        OnClick="PrevStep">
+                                OnClick="PrevStep">
                             PrevStep
                         </Button>
                     </SpaceItem>
                     <SpaceItem>
                         <Button Type="@ButtonType.Primary"
-                        OnClick="NextStep">
+                                OnClick="NextStep">
                             NextStep
                         </Button>
                     </SpaceItem>
@@ -78,16 +80,19 @@
         else
         {
             <Result Status="success"
-            Title="成功生成刮刮卡！">
+                    Title="成功生成刮刮卡！">
                 <Extra>
-                    <Button Type="primary" Icon="cloud-download" OnClick="UploadFile">点击下载Excel文件</Button>
+                    <Button Type="primary" Icon="cloud-download" OnClick="DownLoadFile">点击下载Excel文件</Button>
                 </Extra>
             </Result>
         }
     </Flex>
 </div>
 
+
+
 @code {
+    @inject IMinioClient minioClient;
     //当前步骤
     private int step = 0;
 
@@ -102,8 +107,11 @@
         step++;
         if (step == 2)
         {
-            //触发生成excel的逻辑
+            //本地生成文件
             ByteArrayOutputStream wb = FileUtil.GenerateExcelFile(card);
+            //文件上传minio
+            minioClient.Build();
+
         }
     }
 
@@ -130,10 +138,16 @@
         awardTypeNumber = number;
     }
 
-    private async Task UploadFile(){
+    private async Task UploadFile()
+    {
         string filePath = FileUtil.GetFilePath();
 
         // MinioUtil minioUtil = new MinioUtil();
         // await minioUtil.UploadFile(Guid.NewGuid().ToString(), filePath);
+    }
+
+    private async Task DownLoadFile()
+    {
+
     }
 }
