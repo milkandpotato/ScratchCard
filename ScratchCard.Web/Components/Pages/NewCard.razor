@@ -9,92 +9,118 @@
 
 <PageTitle>ScratchCard</PageTitle>
 
-<div>
-    <Flex Vertical Gap="small">
-        <Flex>
-            <Steps Current="@step" Class="site-navigation-steps">
-                <Step Title="设置卡片" />
-                <Step Title="设置奖品数量" />
-                <Step Title="完成" />
-            </Steps>
-        </Flex>
-
-        <Form Model="@card">
-            @switch (step)
-            {
-                case 0:
-                    {
-                        <Flex Gap="middle" Align="center" Justify="center" Vertical>
-                            <FormItem Label="刮刮卡的长度">
-                                <AntDesign.InputNumber Value="@card.Length" DefaultValue="1" Min="1" ValueChanged="(int number)=>{card.Length = number;}" />
-                            </FormItem>
-                            <FormItem Label="刮刮卡的宽度">
-                                <AntDesign.InputNumber Value="@card.Width" DefaultValue="1" Min="1" ValueChanged="(int number)=>{card.Width = number;}" />
-                            </FormItem>
-                            <FormItem Label="奖品种类数目">
-                                <AntDesign.InputNumber Value="@awardTypeNumber" DefaultValue="1" Min="1" ValueChanged="(int number )=>AwardTypeNumberOnChange(number)" />
-                            </FormItem>
-                        </Flex>
-                        break;
-                    }
-                case 1:
-                    {
-                        <FormItem>
-                            <Table DataSource="@card.Awards" TItem="Model.Award" Context="row" HidePagination Bordered>
-                                <PropertyColumn Property="c=>c.Name" Width="50%">
-                                    <FormItem Required>
-                                        <Input Value="@row.Name" ValueChanged="(string name)=>{row.Name = name;}" />
-                                    </FormItem>
-                                </PropertyColumn>
-
-                                <PropertyColumn Property="c=>c.Number" Width="50%">
-                                    <FormItem Required>
-                                        <Input Value="@row.Number" Type="int" ValueChanged="(int number)=>{row.Number = number;}" />
-                                    </FormItem>
-                                </PropertyColumn>
-                            </Table>
-                        </FormItem>
-                        break;
-                    }
-            }
-        </Form>
-        @if (step < 2)
+<div class="page-content">
+    <Steps Current="@step" Class="site-navigation-steps">
+        @foreach (string title in stepTitles)
         {
+            <Step Title="@title" />
+        }
+    </Steps>
+
+    @if (step < 2)
+    {
+        <div class="form-content">
+            <Form Class="steps-content" Model="@card" Layout="@FormLayout.Vertical">
+                @switch (step)
+                {
+                    case 0:
+                        {
+                            <FormItem Required Label="刮刮卡的长度">
+                                <AntDesign.InputNumber Step="0" Width="100%" Value="@card.Length" DefaultValue="1" Min="1" ValueChanged="(int number)=>{card.Length = number;}" />
+                            </FormItem>
+                            <FormItem Required Label="刮刮卡的宽度">
+                                <AntDesign.InputNumber Step="0" Width="100%" Value="@card.Width" DefaultValue="1" Min="1" ValueChanged="(int number)=>{card.Width = number;}" />
+                            </FormItem>
+                            <FormItem Required Label="奖品种类数目">
+                                <AntDesign.InputNumber Step="0" Width="100%" Value="@awardTypeNumber" DefaultValue="1" Min="1" ValueChanged="(int number )=>AwardTypeNumberOnChange(number)" />
+                            </FormItem>
+                            break;
+                        }
+                    case 1:
+                        {
+                            <FormItem>
+                                <Table DataSource="@card.Awards" TItem="Model.Award" Context="row" HidePagination Bordered>
+                                    <PropertyColumn Property="c=>c.Name" Width="50%">
+                                        <FormItem Required>
+                                            <Input Value="@row.Name" ValueChanged="(string name)=>{row.Name = name;}" />
+                                        </FormItem>
+                                    </PropertyColumn>
+
+                                    <PropertyColumn Property="c=>c.Number" Width="50%">
+                                        <FormItem Required>
+                                            <Input Value="@row.Number" Type="int" ValueChanged="(int number)=>{row.Number = number;}" />
+                                        </FormItem>
+                                    </PropertyColumn>
+                                </Table>
+                            </FormItem>
+                            break;
+                        }
+                }
+            </Form>
+        </div>
+        <div style="margin-top:5px">
             <Flex Align="center" Justify="center">
                 <Space Align="@SpaceAlign.Center" Size="@SpaceSize.Large">
                     <SpaceItem>
                         <Button Type="@ButtonType.Default"
                                 OnClick="PrevStep">
-                            PrevStep
+                            上一步
                         </Button>
                     </SpaceItem>
                     <SpaceItem>
                         <Button Type="@ButtonType.Primary"
                                 OnClick="NextStep">
-                            NextStep
+                            下一步
                         </Button>
                     </SpaceItem>
                 </Space>
             </Flex>
-        }
-        else
-        {
-            <Result Status="success"
-                    Title="成功生成刮刮卡！">
-                <Extra>
-                    <Button Type="primary" Icon="cloud-download" OnClick="DownLoadFile">点击下载Excel文件</Button>
-                </Extra>
-            </Result>
-        }
-    </Flex>
+        </div>
+    }
+    else
+    {
+        <Result Status="success"
+                Title="成功生成刮刮卡！" Style="margin-top:60px">
+            <Extra>
+                <Button Type="primary" Icon="cloud-download" OnClick="DownLoadFile">点击下载Excel文件</Button>
+            </Extra>
+        </Result>
+    }
 </div>
 
+<style>
+    .page-content {
+        padding-top: 16px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
 
+    .steps-content {
+        margin-top: 32px;
+        min-height: 100px;
+        text-align: center;
+    }
+
+    .steps-action {
+        margin-top: 24px;
+    }
+
+    .form-content {
+        margin-top: 10px;
+        height: 300px;
+        overflow: auto;
+    }
+</style>
 
 @code {
+
     @inject IMinioClient minioClient;
+
     //当前步骤
     private int step = 0;
+
+    //步骤名称
+    private string[] stepTitles = new string[] { "设置卡片", "设置奖品", "完成" };
 
     //奖品种类数目
     private int awardTypeNumber = 0;
