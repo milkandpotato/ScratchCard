@@ -48,7 +48,7 @@
 
                                     <PropertyColumn Property="c=>c.Number" Width="50%">
                                         <FormItem Required>
-                                            <Input Value="@row.Number" Type="int" ValueChanged="(int number)=>{row.Number = number;}" />
+                                            <AntDesign.InputNumber Min="0" Step="0" Width="100%" Value="@row.Number" ValueChanged="(int number)=>{row.Number = number;}" />
                                         </FormItem>
                                     </PropertyColumn>
                                 </Table>
