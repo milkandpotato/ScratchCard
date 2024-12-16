@@ -3,8 +3,11 @@
 @using NPOI.Util;
 @using AntDesign;
 @using Minio;
+@using BlazorDownloadFile;
 
 @inject MinioUtil _minioUtil;
+@inject IBlazorDownloadFileService _downloadFileService;
+
 @page "/card"
 @rendermode InteractiveServer
 
@@ -179,6 +182,9 @@
     /// <returns></returns>
     private async Task DownLoadFile()
     {
-
+        MemoryStream memoryStream = new MemoryStream();
+        string fileName = Path.GetFileName(filePath);
+        await _minioUtil.DownloadFile("public", fileName, memoryStream);
+        _downloadFileService.DownloadFile(fileName, memoryStream, "application/octet-stream");
     }
 }

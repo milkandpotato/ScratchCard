@@ -1,3 +1,4 @@
+using BlazorDownloadFile;
 using Minio;
 using ScratchCard.Web.Components;
 
@@ -12,6 +13,8 @@ services.AddSwaggerGen();
 services.AddEndpointsApiExplorer();
 //使用antDesign
 services.AddAntDesign();
+//使用blazorDownloadFile
+services.AddBlazorDownloadFile();
 
 //使用minio
 services.AddMinio(minio =>
