@@ -15,18 +15,17 @@ namespace ScratchCard.File
         /// <summary>
         /// 上传文件
         /// </summary>
-        /// <param name="fileName">文件唯一标识</param>
         /// <param name="filePath">文件路径</param>
         /// <returns></returns>
-        public async Task UploadFileAsync(string bucketName, string fileName, string filePath)
+        public async Task UploadFileAsync(string bucketName, string filePath)
         {
             await CheckBucket(bucketName);
 
-            string objectName = GenerateFileName(fileName);
+            string fileName = Path.GetFileName(filePath);
 
             await _minioClient.PutObjectAsync(new PutObjectArgs()
                                               .WithBucket(bucketName)
-                                              .WithObject(objectName)
+                                              .WithObject(fileName)
                                               .WithFileName(filePath));
 
             Console.WriteLine($"文件 '{fileName}' 上传到 bucket '{bucketName}' 中。");
@@ -44,12 +43,10 @@ namespace ScratchCard.File
         {
             await CheckBucket(bucketName);
 
-            string objectName = GenerateFileName(fileName);
-
             await _minioClient.PutObjectAsync(new PutObjectArgs()
                                               .WithBucket(bucketName)
-                                              .WithObject(objectName)
-                                              .WithObjectSize(fileSize)
+                                              .WithObject(fileName)
+                                              .WithObjectSize(fileStream.Length)
                                               .WithStreamData(fileStream));
 
             Console.WriteLine($"文件 '{fileName}' 上传到 bucket '{bucketName}' 中。");
@@ -62,13 +59,15 @@ namespace ScratchCard.File
         /// <param name="objectName">文件唯一标识</param>
         /// <param name="downloadFilePath">文件下载路径</param>
         /// <returns></returns>
-        public async Task DownloadFile(string bucketName, string objectName, string downloadFilePath)
+        public async Task DownloadFile(string bucketName, string objectName, Stream stream)
         {
             await _minioClient.GetObjectAsync(new GetObjectArgs()
                                               .WithBucket(bucketName)
                                               .WithObject(objectName)
-                                              .WithFile(downloadFilePath));
-            Console.WriteLine($"文件 '{objectName}' 从 bucket '{bucketName}' 下载到 '{downloadFilePath}'。");
+                                              .WithCallbackStream(s =>
+                                              {
+                                                  s.CopyTo(stream);
+                                              }));
         }
 
         /// <summary>
@@ -136,22 +135,6 @@ namespace ScratchCard.File
             {
                 throw new Exception(e.Message);
             }
-        }
-
-        /// <summary>
-        /// 生成唯一文件名
-        /// </summary>
-        /// <param name="fileFullName">文件名称("xxxxx.pdf")</param>
-        /// <returns></returns>
-        private string GenerateFileName(string fileFullName)
-        {
-            //文件名
-            string filename = Path.GetFileNameWithoutExtension(fileFullName);
-
-            //扩展名
-            string extension = Path.GetExtension(fileFullName);
-
-            return $"{filename}_{DateTime.Now.Ticks}{extension}";
         }
     }
 }

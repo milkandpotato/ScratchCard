@@ -11,11 +11,14 @@ namespace ScratchCard.File
     public class FileUtil
     {
 
-        //获取生成的文件路径
+        /// <summary>
+        /// 获取生成的文件路径
+        /// </summary>
+        /// <returns></returns>
         public static string GetFilePath()
         {
             string filePath = "";
-            string fileName = "ScratchCard.xls";
+            string fileName = $"ScratchCard_{DateTime.Now.Ticks}.xls";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 filePath = $"C:\\Users\\{Environment.UserName}\\Downloads\\{fileName}";
@@ -23,6 +26,7 @@ namespace ScratchCard.File
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
+                filePath = $"/home/scratchcard/{fileName}";
                 Console.WriteLine("Linux");
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -60,7 +64,11 @@ namespace ScratchCard.File
             return fileInfo;
         }
 
-        //获取excel文本框
+        /// <summary>
+        /// 获取excel文本框
+        /// </summary>
+        /// <param name="workbook"></param>
+        /// <returns></returns>
         public static ICellStyle GetCellStyle(IWorkbook workbook)
         {
             //创建单元格样式
@@ -92,7 +100,11 @@ namespace ScratchCard.File
             return cellStyle;
         }
 
-        //获取刮刮卡的文本框样式
+        /// <summary>
+        /// 获取刮刮卡的文本框样式
+        /// </summary>
+        /// <param name="workbook"></param>
+        /// <returns></returns>
         public static ICellStyle GetCardCellStyle(IWorkbook workbook)
         {
             ICellStyle cellStyle = GetCellStyle(workbook);
@@ -108,12 +120,18 @@ namespace ScratchCard.File
             return cellStyle;
         }
 
-        //生成刮刮卡的Excel文件
-        public static ByteArrayOutputStream GenerateExcelFile(Card card)
+        /// <summary>
+        /// 生成刮刮卡的Excel文件
+        /// </summary>
+        /// <param name="card"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static FileStream GenerateExcelFile(Card card)
         {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
             string filePath = GetFilePath();
+
+            FileStream fs = new FileStream(filePath, FileMode.OpenOrCreate);
+
             //创建一个新的excel文件，如果当前路径已经存在，则进行覆盖操作
             IWorkbook wb = new HSSFWorkbook();
             try
@@ -160,19 +178,10 @@ namespace ScratchCard.File
                     }
                 }
 
-                using (FileStream fs = new FileStream(filePath, FileMode.OpenOrCreate))
-                {
-                    //向打开的这个xls文件中写入数据
-                    wb.Write(fs);
-                    fs.Close();
-                    fs.Dispose();
-                }
+                fs.Close();
+                fs.Dispose();
 
-                wb.Write(outputStream);
-                wb.Close();
-                wb.Dispose();
-
-                return outputStream;
+                return fs;
             }
             catch (Exception e)
             {

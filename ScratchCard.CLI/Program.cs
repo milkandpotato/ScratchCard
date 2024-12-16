@@ -99,14 +99,14 @@ namespace ScratchCard
             #endregion
 
             //获取生成的excel路径
-            string filePath = CheckUtils.getFilePath();
+            string filePath = FileUtil.GetFilePath();
             Console.WriteLine($"当前系统生成路径为:{filePath}");
 
             //生成xls文件
-            FileUtil.GenerateExcelFile(card);
+            FileStream stream = FileUtil.GenerateExcelFile(card);
 
             //上传minio
-            Task task = minioUtil.UploadFileAsync(Environment.UserName, filePath, filePath);
+            Task task = minioUtil.UploadFileAsync(Environment.UserName, filePath);
             task.Wait();
         }
     }

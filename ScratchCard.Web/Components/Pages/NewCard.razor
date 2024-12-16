@@ -4,6 +4,7 @@
 @using AntDesign;
 @using Minio;
 
+@inject MinioUtil _minioUtil;
 @page "/card"
 @rendermode InteractiveServer
 
@@ -113,9 +114,6 @@
 </style>
 
 @code {
-
-    @inject IMinioClient minioClient;
-
     //当前步骤
     private int step = 0;
 
@@ -127,27 +125,38 @@
 
     private Model.Card card = new Model.Card();
 
-    //下一步
+    //文件路径
+    private string filePath;
+
+    /// <summary>
+    /// 下一步
+    /// </summary>
     private void NextStep()
     {
         step++;
         if (step == 2)
         {
             //本地生成文件
-            ByteArrayOutputStream wb = FileUtil.GenerateExcelFile(card);
-            //文件上传minio
-            minioClient.Build();
-
+            FileStream fs = FileUtil.GenerateExcelFile(card);
+            //文件路径
+            filePath = fs.Name;
+            //上传文件至minio
+            Task upload = _minioUtil.UploadFileAsync("public", filePath);
         }
     }
 
-    //上一步
+    /// <summary>
+    /// 上一步
+    /// </summary>
     private void PrevStep()
     {
         step = step - 1 < 0 ? 0 : step - 1;
     }
 
-    //设置奖品种类
+    /// <summary>
+    /// 设置奖品种类
+    /// </summary>
+    /// <param name="number">奖品数量</param>
     private void AwardTypeNumberOnChange(int number)
     {
         card.Awards.Clear();
@@ -164,14 +173,10 @@
         awardTypeNumber = number;
     }
 
-    private async Task UploadFile()
-    {
-        string filePath = FileUtil.GetFilePath();
-
-        // MinioUtil minioUtil = new MinioUtil();
-        // await minioUtil.UploadFile(Guid.NewGuid().ToString(), filePath);
-    }
-
+    /// <summary>
+    /// 下载文件
+    /// </summary>
+    /// <returns></returns>
     private async Task DownLoadFile()
     {
 
