@@ -136,8 +136,11 @@ namespace ScratchCard.File
             IWorkbook wb = new HSSFWorkbook();
             try
             {
-                //生成sheet页
-                ISheet TempSheet = wb.CreateSheet("ScratchCard");
+                //生成问题sheet页
+                ISheet questionSheet = wb.CreateSheet("Question");
+                //答案sheet页
+                ISheet answerSheet = wb.CreateSheet("Answer");
+
                 //获取答案文本样式
                 ICellStyle answerStyle = GetCellStyle(wb);
                 //获取刮刮卡文本样式
@@ -146,14 +149,16 @@ namespace ScratchCard.File
                 //遍历宽度
                 for (int i = 0; i < card.Width; i++)
                 {
-                    IRow row = TempSheet.CreateRow(i);
+                    IRow row_1 = questionSheet.CreateRow(i);
+                    IRow row_2 = answerSheet.CreateRow(i);
+
                     //遍历长度
                     for (int j = 0; j < card.Length; j++)
                     {
                         //刮刮卡单元格
-                        ICell cardCell = row.CreateCell(j);
+                        ICell cardCell = row_1.CreateCell(j);
                         //答案单元格
-                        ICell answerCell = row.CreateCell(j + card.Length + 4);
+                        ICell answerCell = row_2.CreateCell(j);
 
                         //设置刮刮卡文本样式
                         cardCell.CellStyle = cardStyle;
@@ -168,13 +173,10 @@ namespace ScratchCard.File
                     List<AwardPosition> positions = award.AwardPositions;
                     foreach (AwardPosition position in positions)
                     {
-                        //答案值的位置
-                        int answerPositionX = position.PositionX + card.Length + 4;
-
                         //设置刮刮卡的值的位置
-                        TempSheet.GetRow(position.PositionY).GetCell(position.PositionX).SetCellValue(award.Name);
+                        questionSheet.GetRow(position.PositionY).GetCell(position.PositionX).SetCellValue(award.Name);
                         //设置答案值的位置
-                        TempSheet.GetRow(position.PositionY).GetCell(answerPositionX).SetCellValue(award.Name);
+                        answerSheet.GetRow(position.PositionY).GetCell(position.PositionX).SetCellValue(award.Name);
                     }
                 }
 
