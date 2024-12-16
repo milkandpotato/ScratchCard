@@ -1,0 +1,190 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@using ScratchCard.File;
+@using NPOI.Util;
+@using AntDesign;
+@using Minio;
+@using BlazorDownloadFile;
+
+@inject MinioUtil _minioUtil;
+@inject IBlazorDownloadFileService _downloadFileService;
+
+@page "/card"
+@rendermode InteractiveServer
+
+<PageTitle>ScratchCard</PageTitle>
+
+<div class="page-content">
+    <Steps Current="@step" Class="site-navigation-steps">
+        @foreach (string title in stepTitles)
+        {
+            <Step Title="@title" />
+        }
+    </Steps>
+
+    @if (step < 2)
+    {
+        <div class="form-content">
+            <Form Class="steps-content" Model="@card" Layout="@FormLayout.Vertical">
+                @switch (step)
+                {
+                    case 0:
+                        {
+                            <FormItem Required Label="刮刮卡的长度">
+                                <AntDesign.InputNumber Step="0" Width="100%" Value="@card.Length" DefaultValue="1" Min="1" ValueChanged="(int number)=>{card.Length = number;}" />
+                            </FormItem>
+                            <FormItem Required Label="刮刮卡的宽度">
+                                <AntDesign.InputNumber Step="0" Width="100%" Value="@card.Width" DefaultValue="1" Min="1" ValueChanged="(int number)=>{card.Width = number;}" />
+                            </FormItem>
+                            <FormItem Required Label="奖品种类数目">
+                                <AntDesign.InputNumber Step="0" Width="100%" Value="@awardTypeNumber" DefaultValue="1" Min="1" ValueChanged="(int number )=>AwardTypeNumberOnChange(number)" />
+                            </FormItem>
+                            break;
+                        }
+                    case 1:
+                        {
+                            <FormItem>
+                                <Table DataSource="@card.Awards" TItem="Model.Award" Context="row" HidePagination Bordered>
+                                    <PropertyColumn Property="c=>c.Name" Width="50%">
+                                        <FormItem Required>
+                                            <Input Value="@row.Name" ValueChanged="(string name)=>{row.Name = name;}" />
+                                        </FormItem>
+                                    </PropertyColumn>
+
+                                    <PropertyColumn Property="c=>c.Number" Width="50%">
+                                        <FormItem Required>
+                                            <AntDesign.InputNumber Min="0" Step="0" Width="100%" Value="@row.Number" ValueChanged="(int number)=>{row.Number = number;}" />
+                                        </FormItem>
+                                    </PropertyColumn>
+                                </Table>
+                            </FormItem>
+                            break;
+                        }
+                }
+            </Form>
+        </div>
+        <div style="margin-top:5px">
+            <Flex Align="center" Justify="center">
+                <Space Align="@SpaceAlign.Center" Size="@SpaceSize.Large">
+                    <SpaceItem>
+                        <Button Type="@ButtonType.Default"
+                                OnClick="PrevStep">
+                            上一步
+                        </Button>
+                    </SpaceItem>
+                    <SpaceItem>
+                        <Button Type="@ButtonType.Primary"
+                                OnClick="NextStep">
+                            下一步
+                        </Button>
+                    </SpaceItem>
+                </Space>
+            </Flex>
+        </div>
+    }
+    else
+    {
+        <Result Status="success"
+                Title="成功生成刮刮卡！" Style="margin-top:60px">
+            <Extra>
+                <Button Type="primary" Icon="cloud-download" OnClick="DownLoadFile">点击下载Excel文件</Button>
+            </Extra>
+        </Result>
+    }
+</div>
+
+<style>
+    .page-content {
+        padding-top: 16px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .steps-content {
+        margin-top: 32px;
+        min-height: 100px;
+        text-align: center;
+    }
+
+    .steps-action {
+        margin-top: 24px;
+    }
+
+    .form-content {
+        margin-top: 10px;
+        height: 300px;
+        overflow: auto;
+    }
+</style>
+
+@code {
+    //当前步骤
+    private int step = 0;
+
+    //步骤名称
+    private string[] stepTitles = new string[] { "设置卡片", "设置奖品", "完成" };
+
+    //奖品种类数目
+    private int awardTypeNumber = 0;
+
+    private Model.Card card = new Model.Card();
+
+    //文件路径
+    private string filePath;
+
+    /// <summary>
+    /// 下一步
+    /// </summary>
+    private void NextStep()
+    {
+        step++;
+        if (step == 2)
+        {
+            //本地生成文件
+            FileStream fs = FileUtil.GenerateExcelFile(card);
+            //文件路径
+            filePath = fs.Name;
+            //上传文件至minio
+            Task upload = _minioUtil.UploadFileAsync("public", filePath);
+        }
+    }
+
+    /// <summary>
+    /// 上一步
+    /// </summary>
+    private void PrevStep()
+    {
+        step = step - 1 < 0 ? 0 : step - 1;
+    }
+
+    /// <summary>
+    /// 设置奖品种类
+    /// </summary>
+    /// <param name="number">奖品数量</param>
+    private void AwardTypeNumberOnChange(int number)
+    {
+        card.Awards.Clear();
+
+        for (int i = 0; i < number; i++)
+        {
+            Model.Award award = new Award();
+            award.Length = card.Length;
+            award.Width = card.Width;
+
+            card.Awards.Add(award);
+        }
+
+        awardTypeNumber = number;
+    }
+
+    /// <summary>
+    /// 下载文件
+    /// </summary>
+    /// <returns></returns>
+    private async Task DownLoadFile()
+    {
+        MemoryStream memoryStream = new MemoryStream();
+        string fileName = Path.GetFileName(filePath);
+        await _minioUtil.DownloadFile("public", fileName, memoryStream);
+        _downloadFileService.DownloadFile(fileName, memoryStream, "application/octet-stream");
+    }
+}

@@ -11,11 +11,14 @@ namespace ScratchCard.File
     public class FileUtil
     {
 
-        //获取生成的文件路径
+        /// <summary>
+        /// 获取生成的文件路径
+        /// </summary>
+        /// <returns></returns>
         public static string GetFilePath()
         {
             string filePath = "";
-            string fileName = "ScratchCard.xls";
+            string fileName = $"ScratchCard_{DateTime.Now.Ticks}.xls";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 filePath = $"C:\\Users\\{Environment.UserName}\\Downloads\\{fileName}";
@@ -23,6 +26,7 @@ namespace ScratchCard.File
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
+                filePath = $"/home/scratchcard/{fileName}";
                 Console.WriteLine("Linux");
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -60,7 +64,11 @@ namespace ScratchCard.File
             return fileInfo;
         }
 
-        //获取excel文本框
+        /// <summary>
+        /// 获取excel文本框
+        /// </summary>
+        /// <param name="workbook"></param>
+        /// <returns></returns>
         public static ICellStyle GetCellStyle(IWorkbook workbook)
         {
             //创建单元格样式
@@ -92,7 +100,11 @@ namespace ScratchCard.File
             return cellStyle;
         }
 
-        //获取刮刮卡的文本框样式
+        /// <summary>
+        /// 获取刮刮卡的文本框样式
+        /// </summary>
+        /// <param name="workbook"></param>
+        /// <returns></returns>
         public static ICellStyle GetCardCellStyle(IWorkbook workbook)
         {
             ICellStyle cellStyle = GetCellStyle(workbook);
@@ -108,18 +120,27 @@ namespace ScratchCard.File
             return cellStyle;
         }
 
-        //生成刮刮卡的Excel文件
-        public static ByteArrayOutputStream GenerateExcelFile(Card card)
+        /// <summary>
+        /// 生成刮刮卡的Excel文件
+        /// </summary>
+        /// <param name="card"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static FileStream GenerateExcelFile(Card card)
         {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
             string filePath = GetFilePath();
+
+            FileStream fs = new FileStream(filePath, FileMode.OpenOrCreate);
+
             //创建一个新的excel文件，如果当前路径已经存在，则进行覆盖操作
             IWorkbook wb = new HSSFWorkbook();
             try
             {
-                //生成sheet页
-                ISheet TempSheet = wb.CreateSheet("ScratchCard");
+                //生成问题sheet页
+                ISheet questionSheet = wb.CreateSheet("Question");
+                //答案sheet页
+                ISheet answerSheet = wb.CreateSheet("Answer");
+
                 //获取答案文本样式
                 ICellStyle answerStyle = GetCellStyle(wb);
                 //获取刮刮卡文本样式
@@ -128,14 +149,16 @@ namespace ScratchCard.File
                 //遍历宽度
                 for (int i = 0; i < card.Width; i++)
                 {
-                    IRow row = TempSheet.CreateRow(i);
+                    IRow row_1 = questionSheet.CreateRow(i);
+                    IRow row_2 = answerSheet.CreateRow(i);
+
                     //遍历长度
                     for (int j = 0; j < card.Length; j++)
                     {
                         //刮刮卡单元格
-                        ICell cardCell = row.CreateCell(j);
+                        ICell cardCell = row_1.CreateCell(j);
                         //答案单元格
-                        ICell answerCell = row.CreateCell(j + card.Length + 4);
+                        ICell answerCell = row_2.CreateCell(j);
 
                         //设置刮刮卡文本样式
                         cardCell.CellStyle = cardStyle;
@@ -150,29 +173,18 @@ namespace ScratchCard.File
                     List<AwardPosition> positions = award.AwardPositions;
                     foreach (AwardPosition position in positions)
                     {
-                        //答案值的位置
-                        int answerPositionX = position.PositionX + card.Length + 4;
-
                         //设置刮刮卡的值的位置
-                        TempSheet.GetRow(position.PositionY).GetCell(position.PositionX).SetCellValue(award.Name);
+                        questionSheet.GetRow(position.PositionY).GetCell(position.PositionX).SetCellValue(award.Name);
                         //设置答案值的位置
-                        TempSheet.GetRow(position.PositionY).GetCell(answerPositionX).SetCellValue(award.Name);
+                        answerSheet.GetRow(position.PositionY).GetCell(position.PositionX).SetCellValue(award.Name);
                     }
                 }
 
-                using (FileStream fs = new FileStream(filePath, FileMode.OpenOrCreate))
-                {
-                    //向打开的这个xls文件中写入数据
-                    wb.Write(fs);
-                    fs.Close();
-                    fs.Dispose();
-                }
+                wb.Write(fs);
+                fs.Close();
+                fs.Dispose();
 
-                wb.Write(outputStream);
-                wb.Close();
-                wb.Dispose();
-
-                return outputStream;
+                return fs;
             }
             catch (Exception e)
             {

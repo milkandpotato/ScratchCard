@@ -1,5 +1,5 @@
+using BlazorDownloadFile;
 using Minio;
-using NPOI.POIFS.Crypt;
 using ScratchCard.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +13,8 @@ services.AddSwaggerGen();
 services.AddEndpointsApiExplorer();
 //使用antDesign
 services.AddAntDesign();
+//使用blazorDownloadFile
+services.AddBlazorDownloadFile();
 
 //使用minio
 services.AddMinio(minio =>
@@ -21,6 +23,9 @@ services.AddMinio(minio =>
     .WithSSL(bool.Parse(config["MinioSettings:Secure"]))
     .Build()
 );
+
+//依赖注入
+services.AddScoped(typeof(ScratchCard.File.MinioUtil));
 
 // Add services to the container.
 services.AddRazorComponents()
