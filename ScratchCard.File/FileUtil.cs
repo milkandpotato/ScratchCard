@@ -178,6 +178,7 @@ namespace ScratchCard.File
                     }
                 }
 
+                wb.Write(fs);
                 fs.Close();
                 fs.Dispose();
 
