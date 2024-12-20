@@ -5,6 +5,7 @@ using NPOI.SS.Util;
 using System.Runtime.InteropServices;
 using ScratchCard.Model;
 using NPOI.Util;
+using System.IO;
 
 namespace ScratchCard.File
 {
@@ -17,22 +18,28 @@ namespace ScratchCard.File
         /// <returns></returns>
         public static string GetFilePath()
         {
-            string filePath = "";
+            string dicPath = "";
             string fileName = $"ScratchCard_{DateTime.Now.Ticks}.xls";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                filePath = $"C:\\Users\\{Environment.UserName}\\Downloads\\{fileName}";
-                Console.WriteLine("Windows");
+                dicPath = $"C:\\Users\\{Environment.UserName}\\Downloads\\";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                filePath = $"/home/scratchcard/{fileName}";
-                Console.WriteLine("Linux");
+                dicPath = $"/app/scratchcard_file/";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                filePath = $"/Users/{Environment.UserName}/Downloads/{fileName}";
+                dicPath = $"/Users/{Environment.UserName}/Downloads/";
             }
+            // 检查文件夹是否存在
+            if (!Directory.Exists(dicPath))
+            {
+                // 如果不存在，则创建文件夹
+                Directory.CreateDirectory(dicPath);
+            }
+
+            string filePath = dicPath + fileName ;
 
             return filePath;
         }
@@ -129,6 +136,18 @@ namespace ScratchCard.File
         public static FileStream GenerateExcelFile(Card card)
         {
             string filePath = GetFilePath();
+
+            //校验当前路径是否存在
+            if (!Directory.Exists(filePath))
+            {
+                // 如果不存在，则创建文件夹
+                Directory.CreateDirectory(path);
+                Console.WriteLine("文件夹不存在，已创建文件夹: " + path);
+            }
+            else
+            {
+                Console.WriteLine("文件夹已存在: " + path);
+            }
 
             FileStream fs = new FileStream(filePath, FileMode.OpenOrCreate);
 
