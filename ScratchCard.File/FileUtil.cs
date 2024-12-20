@@ -136,19 +136,6 @@ namespace ScratchCard.File
         public static FileStream GenerateExcelFile(Card card)
         {
             string filePath = GetFilePath();
-
-            //校验当前路径是否存在
-            if (!Directory.Exists(filePath))
-            {
-                // 如果不存在，则创建文件夹
-                Directory.CreateDirectory(path);
-                Console.WriteLine("文件夹不存在，已创建文件夹: " + path);
-            }
-            else
-            {
-                Console.WriteLine("文件夹已存在: " + path);
-            }
-
             FileStream fs = new FileStream(filePath, FileMode.OpenOrCreate);
 
             //创建一个新的excel文件，如果当前路径已经存在，则进行覆盖操作
