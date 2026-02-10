@@ -6,6 +6,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 var config = builder.Configuration;
 
+var minioEndpoint = config.GetValue<string>("MinioSettings:serverAddress") ?? string.Empty;
+var minioPort = config.GetValue<int>("MinioSettings:port", 9000);
+var minioAccessKey = config.GetValue<string>("MinioSettings:accessKey") ?? string.Empty;
+var minioSecretKey = config.GetValue<string>("MinioSettings:secretKey") ?? string.Empty;
+var minioSecure = config.GetValue<bool>("MinioSettings:secure", false);
+
 var services = builder.Services;
 
 services.AddControllers();
@@ -18,9 +24,9 @@ services.AddBlazorDownloadFile();
 
 //使用minio
 services.AddMinio(minio =>
-    minio.WithEndpoint(config["MinioSettings:serverAddress"], int.Parse(config["MinioSettings:port"]))
-    .WithCredentials(config["MinioSettings:AccessKey"], config["MinioSettings:SecretKey"])
-    .WithSSL(bool.Parse(config["MinioSettings:Secure"]))
+    minio.WithEndpoint(minioEndpoint, minioPort)
+    .WithCredentials(minioAccessKey, minioSecretKey)
+    .WithSSL(minioSecure)
     .Build()
 );
 
@@ -46,7 +52,10 @@ else
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (app.Configuration.GetValue("EnableHttpsRedirection", false))
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseStaticFiles();
 app.UseAntiforgery();

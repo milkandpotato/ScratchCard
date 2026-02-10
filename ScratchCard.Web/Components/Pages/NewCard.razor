@@ -7,6 +7,8 @@
 
 @inject MinioUtil _minioUtil;
 @inject IBlazorDownloadFileService _downloadFileService;
+@inject MessageService _message;
+@inject IConfiguration _configuration;
 
 @page "/card"
 @rendermode InteractiveServer
@@ -44,15 +46,15 @@
                         {
                             <FormItem>
                                 <Table DataSource="@card.Awards" TItem="Model.Award" Context="row" HidePagination Bordered>
-                                    <PropertyColumn Property="c=>c.Name" Width="50%">
+                                    <PropertyColumn Property="c=>c.Name" Title="奖品名称" Width="50%">
                                         <FormItem Required>
                                             <Input Value="@row.Name" ValueChanged="(string name)=>{row.Name = name;}" />
                                         </FormItem>
                                     </PropertyColumn>
 
-                                    <PropertyColumn Property="c=>c.Number" Width="50%">
+                                    <PropertyColumn Property="c=>c.Number" Title="奖品数量" Width="50%">
                                         <FormItem Required>
-                                            <AntDesign.InputNumber Min="0" Step="0" Width="100%" Value="@row.Number" ValueChanged="(int number)=>{row.Number = number;}" />
+                                            <AntDesign.InputNumber Min="1" Step="0" Width="100%" Value="@row.Number" ValueChanged="(int number)=>{row.Number = number;}" />
                                         </FormItem>
                                     </PropertyColumn>
                                 </Table>
@@ -62,7 +64,7 @@
                 }
             </Form>
         </div>
-        <div style="margin-top:5px">
+        <div class="steps-footer">
             <Flex Align="center" Justify="center">
                 <Space Align="@SpaceAlign.Center" Size="@SpaceSize.Large">
                     <SpaceItem>
@@ -97,6 +99,7 @@
         padding-top: 16px;
         padding-left: 10px;
         padding-right: 10px;
+        padding-bottom: 88px;
     }
 
     .steps-content {
@@ -113,6 +116,16 @@
         margin-top: 10px;
         height: 300px;
         overflow: auto;
+    }
+
+    .steps-footer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 12px 10px;
+        border-top: 1px solid var(--ant-color-split);
+        background-color: var(--ant-color-bg-container);
     }
 </style>
 
@@ -131,23 +144,130 @@
     //文件路径
     private string filePath = string.Empty;
 
+    private string BucketName =>
+        string.IsNullOrWhiteSpace(_configuration["MinioSettings:Bucket"])
+            ? Environment.UserName
+            : _configuration["MinioSettings:Bucket"]!;
+
     /// <summary>
     /// 下一步
     /// </summary>
-    private void NextStep()
+    private async Task NextStep()
     {
-        step++;
-        if (step == 2)
+        if (step == 0)
         {
-            AssignUniquePositions(card);
+            if (!await ValidateStep0())
+            {
+                return;
+            }
 
-            //本地生成文件
-            filePath = FileUtil.GetFilePath();
-            FileUtil.GenerateExcelFile(card, filePath);
-
-            //上传文件至minio
-            Task upload = _minioUtil.UploadFileAsync("public", filePath);
+            step++;
+            return;
         }
+
+        if (step == 1)
+        {
+            if (!await ValidateStep1())
+            {
+                return;
+            }
+
+            step++;
+
+            if (step != 2)
+            {
+                return;
+            }
+
+            try
+            {
+                AssignUniquePositions(card);
+
+                //本地生成文件
+                filePath = FileUtil.GetFilePath();
+                FileUtil.GenerateExcelFile(card, filePath);
+
+                //上传文件至minio（等待完成，避免下载时对象尚未可用）
+                await _minioUtil.UploadFileAsync(BucketName, filePath);
+            }
+            catch (Exception ex)
+            {
+                step = 1;
+                await _message.Error($"生成或上传失败：{ex.Message}");
+            }
+        }
+    }
+
+    private async Task<bool> ValidateStep0()
+    {
+        if (card.Length <= 0)
+        {
+            await _message.Error("刮刮卡长度必须为正整数");
+            return false;
+        }
+
+        if (card.Width <= 0)
+        {
+            await _message.Error("刮刮卡宽度必须为正整数");
+            return false;
+        }
+
+        if (awardTypeNumber <= 0)
+        {
+            await _message.Error("奖品种类数目必须为正整数");
+            return false;
+        }
+
+        int totalCells = card.Length * card.Width;
+        if (awardTypeNumber > totalCells)
+        {
+            await _message.Error($"奖品种类数目不可大于总格子数：{totalCells}");
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task<bool> ValidateStep1()
+    {
+        if (card.Awards.Count != awardTypeNumber)
+        {
+            await _message.Error("奖品列表未初始化，请返回上一步重新设置奖品种类数");
+            return false;
+        }
+
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var award in card.Awards)
+        {
+            if (string.IsNullOrWhiteSpace(award.Name))
+            {
+                await _message.Error("奖品名称不可为空");
+                return false;
+            }
+
+            string trimmed = award.Name.Trim();
+            if (!names.Add(trimmed))
+            {
+                await _message.Error($"奖品名称不可重复：{trimmed}");
+                return false;
+            }
+
+            if (award.Number <= 0)
+            {
+                await _message.Error($"奖品“{trimmed}”数量必须为正整数");
+                return false;
+            }
+        }
+
+        int totalCells = card.Length * card.Width;
+        int totalAwards = card.Awards.Sum(a => a.Number);
+        if (totalAwards > totalCells)
+        {
+            await _message.Error($"奖品数量不可超过总格子数：{totalCells}，当前奖品数量：{totalAwards}");
+            return false;
+        }
+
+        return true;
     }
 
     private static void AssignUniquePositions(Model.Card card)
@@ -220,9 +340,16 @@
     /// <returns></returns>
     private async Task DownLoadFile()
     {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            await _message.Error("尚未生成文件");
+            return;
+        }
+
         MemoryStream memoryStream = new MemoryStream();
         string fileName = Path.GetFileName(filePath);
-        await _minioUtil.DownloadFile("public", fileName, memoryStream);
-        _downloadFileService.DownloadFile(fileName, memoryStream, "application/octet-stream");
+        await _minioUtil.DownloadFile(BucketName, fileName, memoryStream);
+        memoryStream.Position = 0;
+        await _downloadFileService.DownloadFile(fileName, memoryStream, "application/octet-stream");
     }
 }

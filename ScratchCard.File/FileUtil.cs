@@ -19,6 +19,13 @@ namespace ScratchCard.File
         {
             string filePath = "";
             string fileName = $"ScratchCard_{DateTime.Now.Ticks}.xls";
+
+            string? outputDir = Environment.GetEnvironmentVariable("SCRATCHCARD_OUTPUT_DIR");
+            if (!string.IsNullOrWhiteSpace(outputDir))
+            {
+                return Path.Combine(outputDir, fileName);
+            }
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 filePath = $"C:\\Users\\{Environment.UserName}\\Downloads\\{fileName}";
@@ -26,7 +33,7 @@ namespace ScratchCard.File
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                filePath = $"/home/scratchcard/{fileName}";
+                filePath = $"/tmp/scratchcard/{fileName}";
                 Console.WriteLine("Linux");
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))

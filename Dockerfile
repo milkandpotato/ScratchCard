@@ -28,5 +28,7 @@ RUN dotnet publish "./ScratchCard.Web.csproj" -c $BUILD_CONFIGURATION -o /app/pu
 # 此阶段在生产中使用，或在常规模式下从 VS 运行时使用(在不使用调试配置时为默认值)
 FROM base AS final
 WORKDIR /app
+ENV ASPNETCORE_URLS=http://+:8080
+ENV SCRATCHCARD_OUTPUT_DIR=/tmp/scratchcard
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "ScratchCard.Web.dll"]
