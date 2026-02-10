@@ -65,6 +65,10 @@
             </Form>
         </div>
         <div class="steps-footer">
+            @if (!string.IsNullOrWhiteSpace(validationError))
+            {
+                <Alert Type="AlertType.Error" Message="@validationError" ShowIcon="true" Banner="true" Closable="true" />
+            }
             <Flex Align="center" Justify="center">
                 <Space Align="@SpaceAlign.Center" Size="@SpaceSize.Large">
                     <SpaceItem>
@@ -99,7 +103,7 @@
         padding-top: 16px;
         padding-left: 10px;
         padding-right: 10px;
-        padding-bottom: 88px;
+        padding-bottom: 72px;
     }
 
     .steps-content {
@@ -114,7 +118,8 @@
 
     .form-content {
         margin-top: 10px;
-        height: 300px;
+        height: calc(100vh - 220px);
+        min-height: 260px;
         overflow: auto;
     }
 
@@ -123,6 +128,7 @@
         left: 0;
         right: 0;
         bottom: 0;
+        z-index: 1000;
         padding: 12px 10px;
         border-top: 1px solid var(--ant-color-split);
         background-color: var(--ant-color-bg-container);
@@ -144,6 +150,8 @@
     //文件路径
     private string filePath = string.Empty;
 
+    private string? validationError;
+
     private string BucketName =>
         string.IsNullOrWhiteSpace(_configuration["MinioSettings:Bucket"])
             ? Environment.UserName
@@ -154,6 +162,8 @@
     /// </summary>
     private async Task NextStep()
     {
+        validationError = null;
+
         if (step == 0)
         {
             if (!await ValidateStep0())
@@ -202,26 +212,26 @@
     {
         if (card.Length <= 0)
         {
-            await _message.Error("刮刮卡长度必须为正整数");
+            await SetValidationError("刮刮卡长度必须为正整数");
             return false;
         }
 
         if (card.Width <= 0)
         {
-            await _message.Error("刮刮卡宽度必须为正整数");
+            await SetValidationError("刮刮卡宽度必须为正整数");
             return false;
         }
 
         if (awardTypeNumber <= 0)
         {
-            await _message.Error("奖品种类数目必须为正整数");
+            await SetValidationError("奖品种类数目必须为正整数");
             return false;
         }
 
         int totalCells = card.Length * card.Width;
         if (awardTypeNumber > totalCells)
         {
-            await _message.Error($"奖品种类数目不可大于总格子数：{totalCells}");
+            await SetValidationError($"奖品种类数目不可大于总格子数：{totalCells}");
             return false;
         }
 
@@ -232,7 +242,7 @@
     {
         if (card.Awards.Count != awardTypeNumber)
         {
-            await _message.Error("奖品列表未初始化，请返回上一步重新设置奖品种类数");
+            await SetValidationError("奖品列表未初始化，请返回上一步重新设置奖品种类数");
             return false;
         }
 
@@ -241,20 +251,20 @@
         {
             if (string.IsNullOrWhiteSpace(award.Name))
             {
-                await _message.Error("奖品名称不可为空");
+                await SetValidationError("奖品名称不可为空");
                 return false;
             }
 
             string trimmed = award.Name.Trim();
             if (!names.Add(trimmed))
             {
-                await _message.Error($"奖品名称不可重复：{trimmed}");
+                await SetValidationError($"奖品名称不可重复：{trimmed}");
                 return false;
             }
 
             if (award.Number <= 0)
             {
-                await _message.Error($"奖品“{trimmed}”数量必须为正整数");
+                await SetValidationError($"奖品“{trimmed}”数量必须为正整数");
                 return false;
             }
         }
@@ -263,11 +273,17 @@
         int totalAwards = card.Awards.Sum(a => a.Number);
         if (totalAwards > totalCells)
         {
-            await _message.Error($"奖品数量不可超过总格子数：{totalCells}，当前奖品数量：{totalAwards}");
+            await SetValidationError($"奖品数量不可超过总格子数：{totalCells}，当前奖品数量：{totalAwards}");
             return false;
         }
 
         return true;
+    }
+
+    private async Task SetValidationError(string message)
+    {
+        validationError = message;
+        await _message.Error(message);
     }
 
     private static void AssignUniquePositions(Model.Card card)
@@ -327,6 +343,9 @@
             Model.Award award = new Award();
             award.Length = card.Length;
             award.Width = card.Width;
+
+            award.Name = string.Empty;
+            award.Number = 1;
 
             card.Awards.Add(award);
         }
