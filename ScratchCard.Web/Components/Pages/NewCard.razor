@@ -129,7 +129,7 @@
     private Model.Card card = new Model.Card();
 
     //文件路径
-    private string filePath;
+    private string filePath = string.Empty;
 
     /// <summary>
     /// 下一步
@@ -139,12 +139,50 @@
         step++;
         if (step == 2)
         {
+            AssignUniquePositions(card);
+
             //本地生成文件
-            FileStream fs = FileUtil.GenerateExcelFile(card);
-            //文件路径
-            filePath = fs.Name;
+            filePath = FileUtil.GetFilePath();
+            FileUtil.GenerateExcelFile(card, filePath);
+
             //上传文件至minio
             Task upload = _minioUtil.UploadFileAsync("public", filePath);
+        }
+    }
+
+    private static void AssignUniquePositions(Model.Card card)
+    {
+        int totalCells = card.Length * card.Width;
+        int totalAwards = card.Awards.Sum(a => a.Number);
+        if (totalAwards > totalCells)
+        {
+            throw new InvalidOperationException($"奖品数量不可超过总格子数！总格子数：{totalCells},奖品数量：{totalAwards}");
+        }
+
+        var allCells = new List<(int X, int Y)>(totalCells);
+        for (int y = 0; y < card.Width; y++)
+        {
+            for (int x = 0; x < card.Length; x++)
+            {
+                allCells.Add((x, y));
+            }
+        }
+
+        for (int i = allCells.Count - 1; i > 0; i--)
+        {
+            int j = Random.Shared.Next(i + 1);
+            (allCells[i], allCells[j]) = (allCells[j], allCells[i]);
+        }
+
+        int index = 0;
+        foreach (Model.Award award in card.Awards)
+        {
+            award.AwardPositions.Clear();
+            for (int k = 0; k < award.Number; k++)
+            {
+                var (x, y) = allCells[index++];
+                award.AwardPositions.Add(new Model.AwardPosition { PositionX = x, PositionY = y });
+            }
         }
     }
 

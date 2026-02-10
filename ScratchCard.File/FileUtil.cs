@@ -124,18 +124,22 @@ namespace ScratchCard.File
         /// 生成刮刮卡的Excel文件
         /// </summary>
         /// <param name="card"></param>
-        /// <returns></returns>
+        /// <param name="filePath"></param>
         /// <exception cref="Exception"></exception>
-        public static FileStream GenerateExcelFile(Card card)
+        public static void GenerateExcelFile(Card card, string filePath)
         {
-            string filePath = GetFilePath();
-
-            FileStream fs = new FileStream(filePath, FileMode.OpenOrCreate);
+            string? dir = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrWhiteSpace(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
 
             //创建一个新的excel文件，如果当前路径已经存在，则进行覆盖操作
             IWorkbook wb = new HSSFWorkbook();
             try
             {
+                using FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
+
                 //生成问题sheet页
                 ISheet questionSheet = wb.CreateSheet("Question");
                 //答案sheet页
@@ -181,10 +185,13 @@ namespace ScratchCard.File
                 }
 
                 wb.Write(fs);
-                fs.Close();
-                fs.Dispose();
+                fs.Flush(true);
 
-                return fs;
+                FileInfo fileInfo = new FileInfo(filePath);
+                if (!fileInfo.Exists || fileInfo.Length <= 0)
+                {
+                    throw new Exception($"Excel 文件写入失败或文件为空：{filePath}");
+                }
             }
             catch (Exception e)
             {

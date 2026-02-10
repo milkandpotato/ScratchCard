@@ -16,6 +16,8 @@ namespace ScratchCard.Model
         public int PositionX { get { return position_x; } set { position_x = value; } }
         public int PositionY { get { return position_y; } set { position_y = value; } }
 
+        public AwardPosition() { }
+
         public AwardPosition(int max_x, int max_y)
         {
             Random random = new Random();

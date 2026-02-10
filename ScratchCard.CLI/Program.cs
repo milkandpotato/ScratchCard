@@ -53,9 +53,9 @@ namespace ScratchCard
                 {
                     Console.WriteLine($"请输入奖项_{i + 1}");
                     //获取奖项内容
-                    string awardStr = Console.ReadLine();
+                    string? awardStr = Console.ReadLine();
                     //判断输入是否为空字符串
-                    if (String.IsNullOrEmpty(awardStr))
+                    if (String.IsNullOrWhiteSpace(awardStr))
                     {
                         Console.WriteLine("不可输入空字符串");
                         continue;
@@ -76,38 +76,75 @@ namespace ScratchCard
                 }
                 while (String.IsNullOrEmpty(award.Name));
 
-                do
+                while (true)
                 {
                     //获取奖项数量
                     awardNumber = CheckUtils.GetNumber("请输入该奖项的数量");
 
                     //判断添加的奖品数量是否大于总的格子数量
-
                     if (totalAwardNumber + awardNumber > totalCardCellNumber)
                     {
                         Console.WriteLine($"奖品数量不可超过总格子数！总格子数：{totalCardCellNumber},期望奖品数量:{totalAwardNumber + awardNumber}");
+                        continue;
                     }
-                    else
-                    {
-                        award.Number = awardNumber;
-                        totalAwardNumber += awardNumber;
-                    }
-                } while (totalAwardNumber + awardNumber > totalCardCellNumber);
+
+                    award.Number = awardNumber;
+                    totalAwardNumber += awardNumber;
+                    break;
+                }
 
                 card.Awards.Add(award);
             }
             #endregion
+
+            AssignUniquePositions(card, random);
 
             //获取生成的excel路径
             string filePath = FileUtil.GetFilePath();
             Console.WriteLine($"当前系统生成路径为:{filePath}");
 
             //生成xls文件
-            FileStream stream = FileUtil.GenerateExcelFile(card);
+            FileUtil.GenerateExcelFile(card, filePath);
 
             //上传minio
             Task task = minioUtil.UploadFileAsync(Environment.UserName, filePath);
             task.Wait();
+        }
+
+        private static void AssignUniquePositions(Card card, Random random)
+        {
+            int totalCells = card.Length * card.Width;
+            int totalAwards = card.Awards.Sum(a => a.Number);
+            if (totalAwards > totalCells)
+            {
+                throw new InvalidOperationException($"奖品数量不可超过总格子数！总格子数：{totalCells},奖品数量：{totalAwards}");
+            }
+
+            var allCells = new List<(int X, int Y)>(totalCells);
+            for (int y = 0; y < card.Width; y++)
+            {
+                for (int x = 0; x < card.Length; x++)
+                {
+                    allCells.Add((x, y));
+                }
+            }
+
+            for (int i = allCells.Count - 1; i > 0; i--)
+            {
+                int j = random.Next(i + 1);
+                (allCells[i], allCells[j]) = (allCells[j], allCells[i]);
+            }
+
+            int index = 0;
+            foreach (Award award in card.Awards)
+            {
+                award.AwardPositions.Clear();
+                for (int k = 0; k < award.Number; k++)
+                {
+                    var (x, y) = allCells[index++];
+                    award.AwardPositions.Add(new AwardPosition { PositionX = x, PositionY = y });
+                }
+            }
         }
     }
 }

@@ -16,29 +16,30 @@ namespace ScratchCard
         public static int GetNumber(string text)
         {
             int number;
-            bool checkResult = false;
-            do
+            while (true)
             {
                 Console.WriteLine(text);
-                string str = Console.ReadLine();
-                checkResult = int.TryParse(str, out number);
-                if (checkResult)
-                {
-                    number = int.Parse(str);
-                }
-                else
+                string? str = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(str))
                 {
                     Console.WriteLine("请输入纯数字");
+                    continue;
                 }
 
-                //校验输入的内容是否为正整数
-                if (number < 0)
+                if (!int.TryParse(str, out number))
+                {
+                    Console.WriteLine("请输入纯数字");
+                    continue;
+                }
+
+                if (number <= 0)
                 {
                     Console.WriteLine("请输入正整数!");
+                    continue;
                 }
-            } while (!checkResult);
 
-            return number;
+                return number;
+            }
         }
 
         /// <summary>
